@@ -4,6 +4,7 @@ import { Promise } from 'es6-promise';
 import * as tracking from 'utils/tracking';
 import axiosClient from 'utils/axios-client';
 import { TRACKING_API_URL } from 'utils/constants';
+import browserHistory from 'utils/history';
 
 
 describe('tracking utils', function () {
@@ -12,6 +13,7 @@ describe('tracking utils', function () {
       global.gaLoaded = true;
       stub(global, 'ga');
       stub(global.clicky, 'log');
+      browserHistory.push('/');
     });
 
     describe('trackSwipeLandingPageCarousel', function () {
@@ -295,6 +297,22 @@ describe('tracking utils', function () {
         );
       });
     });
+
+    describe('trackDocumentRequest', function () {
+      it('should send event analytic', function () {
+        tracking.trackDocumentRequest('CR', '309887', 'cpdp@cpdp.co');
+        global.ga.should.be.calledWith('send', {
+          hitType: 'event',
+          eventCategory: 'document_request',
+          eventAction: 'request',
+          eventLabel: 'CR 309887 - Email cpdp@cpdp.co',
+        });
+        global.clicky.log.should.be.calledWith(
+          '/',
+          'document_request: CR 309887 - Email cpdp@cpdp.co',
+        );
+      });
+    });
   });
 
   describe('ga and clicky script is unable to load', function () {
@@ -303,6 +321,7 @@ describe('tracking utils', function () {
       stub(global, 'ga').value(null);
       stub(global, 'clicky').value(null);
       stub(axiosClient, 'post').returns(new Promise(resolve => resolve()));
+      browserHistory.push('/');
     });
 
     it('should post tracking data to server', function () {
@@ -367,6 +386,28 @@ describe('tracking utils', function () {
             'event_label': undefined,
             'event_value': undefined,
             'page': '/officer/123/',
+          },
+        };
+        axiosClient.post.should.be.calledWith(TRACKING_API_URL, expectedTrackingParams);
+      });
+    });
+
+    describe('trackDocumentRequest', function () {
+      it('should post tracking data to server', function () {
+        tracking.trackDocumentRequest('CR', '309887', 'cpdp@cpdp.co');
+
+        const expectedTrackingParams = {
+          clicky: {
+            href: '/',
+            title: 'document_request: CR 309887 - Email cpdp@cpdp.co',
+          },
+          ga: {
+            'event_action': 'request',
+            'event_category': 'document_request',
+            'event_label': 'CR 309887 - Email cpdp@cpdp.co',
+            'event_value': undefined,
+            'hit_type': 'event',
+            'page': undefined,
           },
         };
         axiosClient.post.should.be.calledWith(TRACKING_API_URL, expectedTrackingParams);

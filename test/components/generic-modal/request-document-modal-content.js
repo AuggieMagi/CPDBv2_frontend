@@ -1,13 +1,14 @@
 import React from 'react';
 import { mount } from 'enzyme';
 import { spy, stub, useFakeTimers } from 'sinon';
-import * as intercomUtils from 'utils/intercom';
 
 import RequestDocumentModalContent from 'components/generic-modal/request-document-modal-content';
 import { buildEditStateFields } from 'utils/test/factories/draft';
 import HoverableEditWrapper from 'components/inline-editable/hoverable-edit-wrapper';
 import EditWrapperStateProvider from 'components/inline-editable/edit-wrapper-state-provider';
 import RichTextEditable from 'components/inline-editable/editable-section/rich-text-editable';
+import * as intercomUtils from 'utils/intercom';
+import * as tracking from 'utils/tracking';
 
 
 describe('RequestDocumentModalContent component', function () {
@@ -24,6 +25,7 @@ describe('RequestDocumentModalContent component', function () {
     const wrapper = mount(
       <RequestDocumentModalContent
         instructionEditWrapperStateProps={ instructionEditWrapperStateProps }
+        recordType='CR'
         hasData={ false }
       />
     );
@@ -54,6 +56,7 @@ describe('RequestDocumentModalContent component', function () {
     const wrapper = mount(
       <RequestDocumentModalContent
         instructionEditWrapperStateProps={ instructionEditWrapperStateProps }
+        recordType='CR'
         hasData={ true }
       />
     );
@@ -74,7 +77,7 @@ describe('RequestDocumentModalContent component', function () {
   it('should call closeEvent when click to Close link', function () {
     const cancelClickHandler = spy();
     const wrapper = mount(
-      <RequestDocumentModalContent closeModal={ cancelClickHandler }/>
+      <RequestDocumentModalContent closeModal={ cancelClickHandler } recordType='CR' />
     );
     const cancelDomElement = wrapper.find('a');
     cancelDomElement.text().should.equal('Cancel');
@@ -84,7 +87,7 @@ describe('RequestDocumentModalContent component', function () {
 
   it('should show message if isRequested is true and have message', function () {
     const wrapper = mount(
-      <RequestDocumentModalContent message={ 'Thanks you' } isRequested={ true } />
+      <RequestDocumentModalContent message={ 'Thanks you' } isRequested={ true } recordType='CR' />
     );
     const messageBoxElement = wrapper.find('.request-document-message-box');
     messageBoxElement.text().should.equal('Thanks you');
@@ -92,7 +95,7 @@ describe('RequestDocumentModalContent component', function () {
 
   it('hide messageBox on startup but show if `warning` set to true; the email-input change background', function () {
     const wrapper = mount(
-      <RequestDocumentModalContent message={ 'Thanks you' } />
+      <RequestDocumentModalContent message={ 'Thanks you' } recordType='CR' />
     );
     wrapper.find('.request-document-message-box').exists().should.be.false();
     wrapper.setState({ warning: true });
@@ -109,6 +112,7 @@ describe('RequestDocumentModalContent component', function () {
     beforeEach(function () {
       clock = useFakeTimers();
       stub(intercomUtils, 'updateIntercomEmail');
+      stub(tracking, 'trackDocumentRequest');
     });
 
     function submitRequestDocumentTest(assertInCallbackTest, done, fail=false) {
@@ -125,6 +129,7 @@ describe('RequestDocumentModalContent component', function () {
           id={ 1 }
           closeModal={ closeCallback }
           onRequestDocument={ requestDocumentCallback }
+          recordType='CR'
         />
       );
 
@@ -171,6 +176,8 @@ describe('RequestDocumentModalContent component', function () {
       assertInCallbackTest = function (requestForm) {
         requestForm.state('warning').should.be.false();
         requestForm.prop('closeModal').should.not.be.calledOnce();
+        tracking.trackDocumentRequest.should.be.calledOnce();
+        tracking.trackDocumentRequest.should.be.calledWith('CR', 1, 'abc@xyz.com');
         clock.tick(1550);
         requestForm.prop('closeModal').should.be.calledOnce();
         intercomUtils.updateIntercomEmail.should.be.calledWith('abc@xyz.com');

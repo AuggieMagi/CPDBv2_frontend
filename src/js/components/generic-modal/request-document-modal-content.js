@@ -8,6 +8,8 @@ import style from './request-document-modal-content.sass';
 import EditWrapperStateProvider from 'components/inline-editable/edit-wrapper-state-provider';
 import HoverableEditWrapper from 'components/inline-editable/hoverable-edit-wrapper';
 import RichTextEditable from 'components/inline-editable/editable-section/rich-text-editable';
+import { getUserEmail } from 'utils/user';
+import * as tracking from 'utils/tracking';
 
 
 class RequestDocumentModalContent extends Component {
@@ -18,10 +20,11 @@ class RequestDocumentModalContent extends Component {
 
   handleSubmit = e => {
     e.preventDefault();
-    const { onRequestDocument, id, closeModal } = this.props;
+    const { onRequestDocument, id, closeModal, recordType } = this.props;
     const email = this.refs.email.value;
 
     return onRequestDocument({ id, email }).then((action) => {
+      tracking.trackDocumentRequest(recordType, id, email);
       updateIntercomEmail(email);
       this.setState({ warning: false });
       setTimeout(closeModal, 1500); // auto close modal if success
@@ -49,6 +52,7 @@ class RequestDocumentModalContent extends Component {
             </HoverableEditWrapper>
           </EditWrapperStateProvider>
           <input
+            defaultValue={ getUserEmail() }
             ref='email'
             className={ cx('request-document-input', { emphasis: this.state.warning }) }
             placeholder='Your email'
@@ -72,4 +76,5 @@ RequestDocumentModalContent.propTypes = {
   isRequested: PropTypes.bool,
   instructionEditWrapperStateProps: PropTypes.object,
   hasData: PropTypes.bool,
+  recordType: PropTypes.string.isRequired,
 };

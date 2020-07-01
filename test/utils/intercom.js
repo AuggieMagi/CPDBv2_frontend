@@ -27,8 +27,14 @@ describe('Intercom utils', function () {
   });
 
   describe('updateIntercomEmail', function () {
-    it('should update Intercom user email', function () {
+    it('should update Intercom once for each user email', function () {
       updateIntercomEmail('abc@gmail.com');
+      window.Intercom.calledWith('update', { email: 'abc@gmail.com' }).should.be.true();
+      updateIntercomEmail('abc@gmail.com');
+      window.Intercom.should.be.calledOnce();
+
+      updateIntercomEmail('abc2@gmail.com');
+      window.Intercom.should.be.calledTwice();
       window.Intercom.calledWith('update', { email: 'abc@gmail.com' }).should.be.true();
     });
   });

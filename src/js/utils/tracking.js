@@ -304,3 +304,17 @@ export const trackDocumentEdit = (documentID, documentField) => {
     },
   });
 };
+
+export const trackDocumentRequest = (recordType, id, email) => {
+  analyticTracking({
+    clickyData: {
+      title: `document_request: ${recordType} ${id} - Email ${email}`,
+    },
+    gaData: {
+      hitType: 'event',
+      eventCategory: 'document_request',
+      eventAction: 'request',
+      eventLabel: `${recordType} ${id} - Email ${email}`,
+    },
+  });
+};

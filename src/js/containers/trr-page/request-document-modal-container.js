@@ -23,6 +23,7 @@ const mapDispatchToProps = {
 
 const mapStateToProps = (state, ownProps) => ({
   id: getTRRId(ownProps.location.pathname),
+  recordType: 'TRR',
   message: state.trrPage.attachmentRequest.request.message,
   isRequested: state.trrPage.attachmentRequest.request.isRequested,
   editableFields: getCMSFields(TRR_PAGE_ID)(state),

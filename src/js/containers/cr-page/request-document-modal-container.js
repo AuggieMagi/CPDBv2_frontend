@@ -28,6 +28,7 @@ const mapDispatchToProps = {
 const mapStateToProps = (state, ownProps) => {
   return {
     id: getCRID(ownProps.location.pathname),
+    recordType: 'CR',
     message: state.crPage.attachmentRequest.request.message,
     isRequested: state.crPage.attachmentRequest.request.isRequested,
     editableFields: getCMSFields(CR_PAGE_ID)(state),
